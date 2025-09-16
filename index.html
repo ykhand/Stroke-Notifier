@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nepal Stroke Response Navigator</title>
+    <meta
+      name="description"
+      content="Interactive map of neurological hospitals across Nepal to help responders locate thrombolysis-capable stroke care within the crucial treatment window."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha512-Rksm6iu0xN1HVQ+gF02zjG3GKv0O26lcT1kXkN5L0h3VK1Jlim1LkG7GJ4xQW2E1h1Gc7KVpN3W3v0u2CjFQmA=="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1 class="title">Nepal Stroke Response Navigator</h1>
+      <p class="subtitle">
+        Map neurological hospitals across Nepal, understand their stroke capabilities, and identify the closest thrombolysis-ready centre that can be reached within the golden four-hour window.
+      </p>
+    </header>
+
+    <main class="app-layout">
+      <aside class="sidebar">
+        <section class="panel location-panel">
+          <h2>Your location</h2>
+          <p>
+            Set where the patient is located to calculate the nearest stroke centre and estimated travel time.
+          </p>
+          <div class="control-group">
+            <div class="button-row">
+              <button id="use-location" class="btn btn-primary" type="button">
+                Use my GPS location
+              </button>
+              <button id="clear-location" class="btn btn-outline" type="button">
+                Clear
+              </button>
+            </div>
+            <label for="preset-location">Quick location presets</label>
+            <select id="preset-location">
+              <option value="">Select a city or hub…</option>
+              <option value="27.7172,85.3240">Kathmandu (Basantapur)</option>
+              <option value="27.6721,85.4298">Bhaktapur</option>
+              <option value="27.6588,85.3247">Patan</option>
+              <option value="28.2096,83.9856">Pokhara Lakeside</option>
+              <option value="27.6839,84.4313">Bharatpur</option>
+              <option value="26.8129,87.2846">Dharan</option>
+              <option value="28.0500,81.6166">Nepalgunj</option>
+              <option value="27.7017,83.4646">Butwal</option>
+              <option value="28.6977,80.5901">Dhangadhi</option>
+            </select>
+            <p id="location-status" class="status-message">
+              Tip: you can also tap anywhere on the map to drop a location pin.
+            </p>
+          </div>
+
+          <div class="control-group">
+            <label for="speed-control">Average travel speed</label>
+            <input
+              id="speed-control"
+              class="slider"
+              type="range"
+              min="20"
+              max="80"
+              step="5"
+              value="40"
+            />
+            <p class="status-message">
+              Using <span id="speed-value" class="slider-value">40</span> km/h to estimate travel time.
+            </p>
+          </div>
+
+          <div class="guideline-callout">
+            <strong>Guideline:</strong> Choose hospitals equipped for thrombolysis and reachable within four hours to align with the national stroke pathway.
+          </div>
+        </section>
+
+        <section class="panel helpline-panel">
+          <h2>Activate help fast</h2>
+          <p>
+            Contact the national stroke helpline or connect with the closest stroke team to prepare for arrival.
+          </p>
+          <div class="button-row">
+            <a id="call-helpline" class="btn btn-warning" href="tel:+97716600103666">
+              Call stroke helpline
+            </a>
+            <button id="activate-stroke-team" class="btn btn-ghost" type="button">
+              Activate stroke team
+            </button>
+          </div>
+          <div id="stroke-team-instructions" class="stroke-team-instructions" aria-live="polite">
+            <strong>When connected, share:</strong>
+            <ol>
+              <li>Exact pickup location and time of symptom onset.</li>
+              <li>Primary stroke symptoms observed (e.g., facial droop, speech difficulty).</li>
+              <li>Relevant medical history or anticoagulant use.</li>
+            </ol>
+            <p class="status-message">
+              The stroke team will coordinate imaging readiness and rapid thrombolysis on arrival.
+            </p>
+          </div>
+        </section>
+
+        <section class="panel recommended-panel">
+          <h2>Recommended facility</h2>
+          <div id="recommended-container">
+            <div class="empty-state">Set a location to receive the best hospital recommendation.</div>
+          </div>
+        </section>
+
+        <section class="panel filters-panel">
+          <h2>Map filters</h2>
+          <label>
+            <input id="filter-thrombolysis" type="checkbox" />
+            Show only thrombolysis-capable hospitals
+          </label>
+          <label>
+            <input id="filter-guideline" type="checkbox" />
+            Show only hospitals reachable within four hours
+          </label>
+          <p class="status-message">
+            Filters update markers and the directory list immediately.
+          </p>
+        </section>
+
+        <section class="panel directory-panel">
+          <h2>Hospital directory</h2>
+          <div id="hospital-count" class="hospital-count"></div>
+          <ul id="hospital-list" class="hospital-list" aria-live="polite"></ul>
+        </section>
+      </aside>
+
+      <section class="map-panel">
+        <div id="map" role="application" aria-label="Map of neurological hospitals across Nepal"></div>
+        <div class="map-legend">
+          <h3>Legend</h3>
+          <ul>
+            <li class="legend-item">
+              <span class="legend-swatch primary"></span>
+              Thrombolysis &lt; 4 h
+            </li>
+            <li class="legend-item">
+              <span class="legend-swatch secondary"></span>
+              Thrombolysis capable
+            </li>
+            <li class="legend-item">
+              <span class="legend-swatch basic"></span>
+              Neurological services
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      Data prepared for the Nepal Neurology Stroke Network. Travel estimates use straight-line distance and the adjustable speed slider—always call emergency medical services immediately for suspected stroke.
+    </footer>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha512-o9N1j7kGStGkWQiaTKty+O+kO5OVwOB1p5MNDoAuCEi0aKBslZx0drfac+Do6Uczdlz7So1NxP70H/7LkRykWQ=="
+      crossorigin=""
+    ></script>
+    <script src="assets/js/hospitals.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>
